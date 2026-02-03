@@ -1,5 +1,6 @@
 import pygame
 import random
+#from Menu import *
 
 
 # -------------------- SETUP -------------------
@@ -9,7 +10,8 @@ pygame.init()
 # Screen size
 WIDTH, HEIGHT = 300, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Tetris AE")
+pygame.display.set_caption("Tetris AE | Game Mode")
+PlaySurface = pygame.display.set_mode((500, 600))
 
 clock = pygame.time.Clock()
 
@@ -23,6 +25,8 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (100, 100, 100)
 
+Score = 0
+Speed = 0
 
 # -------------------- SHAPES --------------------
 SHAPES = [
@@ -48,8 +52,6 @@ class Piece:
         self.y = 0
 
     def rotate(self):
-        # noinspection PyArgumentList
-        # ^^^^ Pycharm breaking my nuts prime ^^^^
         self.shape = list(zip(*self.shape[::-1]))
 
 
@@ -86,16 +88,16 @@ def draw_grid():
     for y in range(ROWS):
         for x in range(COLS):
             if grid[y][x]:
-                pygame.draw.rect(
-                    screen,
-                    WHITE,
-                    (x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-                )
+               pygame.draw.rect(
+                   screen,
+                   WHITE,
+                   (x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
+               )
             pygame.draw.rect(
-                screen,
+                PlaySurface,
                 GRAY,
                 (x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
-                1
+                1,
             )
 
 
@@ -124,7 +126,7 @@ while running:
     clock.tick(60)
 
     # IDK what time it updates at but 100 seems okay
-    if fall_time > 100:         # Arbitrary value here... Wtf now ??
+    if fall_time > 60:         # Arbitrary value here... Wtf now ??
         if valid_position(piece, dy=1):
             piece.y += 1
         else:
@@ -145,14 +147,22 @@ while running:
                 piece.x -= 1
             if e.key == pygame.K_RIGHT and valid_position(piece, dx=1):
                 piece.x += 1
-            if e.key == pygame.K_DOWN and valid_position(piece, dy=1):
-                piece.y += 1
             if e.key == pygame.K_UP:
                 piece.rotate()
                 if not valid_position(piece):
                     piece.rotate()
                     piece.rotate()
                     piece.rotate()
+
+    # Fast Downing
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_DOWN] and valid_position(piece, dy=1):
+        piece.y += 1
+
+    font = pygame.font.SysFont("Arial", 32)
+    text = font.render("Score :", True, WHITE)
+    screen.blit(text, (300, 0))
 
     draw_grid()
     draw_piece(piece)
