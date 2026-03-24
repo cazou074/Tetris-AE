@@ -7,9 +7,9 @@ pygame.init()  # Démarre tous les modules de pygame (affichage, son, clavier, e
 
 # Dimensions de la fenêtre de jeu en pixels
 WIDTH, HEIGHT = 300, 600
-screen = pygame.display.set_mode((WIDTH, HEIGHT))          # Crée la fenêtre principale du jeu
+PlaySurface = pygame.display.set_mode((WIDTH, HEIGHT))          # Crée la fenêtre principale du jeu
 pygame.display.set_caption("Tetris AE | Game Mode")        # Définit le titre de la fenêtre
-PlaySurface = pygame.display.set_mode((500, 600))          # Recrée la fenêtre avec une largeur plus grande (remplace la précédente)
+Screen = pygame.display.set_mode((500, 600))          # Recrée la fenêtre avec une largeur plus grande (remplace la précédente)
 
 clock = pygame.time.Clock()  # Crée une horloge pour contrôler la vitesse du jeu (FPS)
 
@@ -118,13 +118,13 @@ def draw_grid():
         for x in range(COLS):
             if grid[y][x]:  # Si la case est occupée, dessine un bloc blanc
                 pygame.draw.rect(
-                    screen,
+                    PlaySurface,
                     WHITE,
                     (x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
                 )
-            # Dessine le contour gris de chaque case (sur PlaySurface)
+            # Dessine le contour gris de chaque case (sur Screen)
             pygame.draw.rect(
-                PlaySurface,
+                Screen,
                 GRAY,
                 (x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
                 1,  # Épaisseur du contour : 1 pixel
@@ -139,7 +139,7 @@ def draw_piece(shapes):
         for x, cell in enumerate(row):
             if cell:  # Si la cellule de la pièce est occupée
                 pygame.draw.rect(
-                    screen,
+                    PlaySurface,
                     WHITE,
                     ((shapes.x + x) * BLOCK_SIZE,      # Position X en pixels
                      (shapes.y + y) * BLOCK_SIZE,           # Position Y en pixels
@@ -155,7 +155,7 @@ fall_time = 0     # Compteur de temps pour gérer la chute automatique
 
 running = True
 while running:
-    screen.fill(BLACK)                        # Efface l'écran en le remplissant de noir
+    PlaySurface.fill(BLACK)                        # Efface l'écran en le remplissant de noir
     fall_time += clock.get_rawtime()          # Ajoute le temps écoulé depuis le dernier appel (en ms)
     clock.tick(60)                            # Limite le jeu à 60 FPS
 
@@ -199,7 +199,7 @@ while running:
     # --- Affichage du score ---
     font = pygame.font.SysFont("Arial", 32)
     text = font.render("Score :", True, WHITE)
-    screen.blit(text, (300, 0))              # Affiche le texte "Score :" à la position (300, 0)
+    PlaySurface.blit(text, (300, 0))              # Affiche le texte "Score :" à la position (300, 0)
 
     # --- Dessin de la grille et de la pièce ---
     draw_grid()
