@@ -13,8 +13,6 @@
 
 **Trucs à rajouter (Titouan):**
 
-- Menu
-- Mode jour/nuit
 - Dificultées : besoins: score,vitesse,bonus temps,combos
 - 
 
