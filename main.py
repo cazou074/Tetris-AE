@@ -7,7 +7,7 @@ pygame.init()  # Démarre tous les modules de pygame (affichage, son, clavier, e
 
 # Dimensions de la fenêtre de jeu en pixels
 WIDTH, HEIGHT = 300, 600
-PlaySurface = pygame.display.set_mode((WIDTH, HEIGHT))          # Crée la fenêtre principale du jeu
+PlaySurface = pygame.display.set_mode((WIDTH, HEIGHT))          # Crée la fenêtre principale du jeu (Zone de jeux)
 pygame.display.set_caption("Tetris AE | Game Mode")        # Définit le titre de la fenêtre
 Screen = pygame.display.set_mode((500, 600))          # Recrée la fenêtre avec une largeur plus grande (remplace la précédente)
 
@@ -106,6 +106,9 @@ def clear_lines():
     # Remplit les lignes manquantes en haut avec des lignes vides
     while len(grid) < ROWS:
         grid.insert(0, [0 for _ in range(COLS)])
+        global Score    # Interagit avec la variable Score qui est global(partout dans le projet)
+        Score =+ 1      # Rajoute 1 au Score
+
 
 
 def draw_grid():
@@ -197,9 +200,12 @@ while running:
         piece.y += 1                          # Descend la pièce d'une case supplémentaire par frame
 
     # --- Affichage du score ---
-    font = pygame.font.SysFont("Arial", 32)
-    text = font.render("Score :", True, WHITE)
+    font = pygame.font.SysFont("Arial", 32)              # Défini la police d'écriture: "Arial" et sa taille: 32
+    text = font.render("Score :", True, WHITE)         # Crée une variable avec le texte: "Score :" et sa couleur: WHITE
+    Score_text = font.render(str(Score), True, WHITE)       # PS: str(Score) -> Transforme  la valeur de Score en texte
+
     PlaySurface.blit(text, (300, 0))              # Affiche le texte "Score :" à la position (300, 0)
+    PlaySurface.blit(Score_text, (300, 50))       # Affiche le score à la position (300, 50) (en dessous du texte)
 
     # --- Dessin de la grille et de la pièce ---
     draw_grid()
