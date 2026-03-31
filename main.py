@@ -1,6 +1,8 @@
 import pygame
 import random
 
+from pygame.fastevent import wait
+
 # -------------------- INITIALISATION --------------------
 
 pygame.init()  # Démarre tous les modules de pygame (affichage, son, clavier, etc.)
@@ -22,9 +24,17 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (100, 100, 100)
 
-# Variables de jeu (non encore utilisées dans cette version)
+# Variables de jeu
 Score = 0
 Speed = 0
+
+# Mode nuit
+NightMode = True
+StandingBlockColor = WHITE
+GridColor = GRAY
+WindowColor = BLACK
+BlockColor = WHITE
+TextColor = WHITE
 
 # -------------------- FORMES DES PIÈCES --------------------
 # Chaque pièce est représentée par une liste de listes :
@@ -63,31 +73,40 @@ class Piece:
 # -------------------- CLASSE BOUTTON --------------------
 
 class Button:
-    def __init__(self, x, y, width, height, text, action=None):
+    def __init__(self, x, y, width, height, text, font, fontsize, action=None):
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
+        self.font = pygame.font.SysFont(font, fontsize)
         self.action = action
-        self.color = '#ffffff'
+        self.color = WHITE
         self.hover_color = '#666666'
         self.pressed_color = '#333333'
         self.current_color = self.color
+        self.is_hovered = False
+        self.is_pressed = False
 
-    def process(self):
+    def update(self, events):
         mouse_pos = pygame.mouse.get_pos()
-        # Hover effect
-        if self.rect.collidepoint(mouse_pos):
-            self.current_color = self.hover_color
-            # Check for click
-            if pygame.mouse.get_pressed()[0]:  # Left mouse button
-                self.current_color = self.pressed_color
-                if self.action:
+        self.is_hovered = self.rect.collidepoint(mouse_pos)
+        self.is_pressed = self.is_hovered and pygame.mouse.get_pressed()[0]
+
+        # One-shot sur MOUSEBUTTONDOWN
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if self.is_hovered and self.action:
                     self.action()
+
+        # Couleur
+        if self.is_pressed:
+            self.current_color = self.pressed_color
+        elif self.is_hovered:
+            self.current_color = self.hover_color
         else:
             self.current_color = self.color
 
-        # Draw button
+    def draw(self):
         pygame.draw.rect(Screen, self.current_color, self.rect)
-        text_surf = font.render(self.text, True, (20, 20, 20))
+        text_surf = self.font.render(self.text, True, (20, 20, 20))
         text_rect = text_surf.get_rect(center=self.rect.center)
         Screen.blit(text_surf, text_rect)
 
@@ -105,10 +124,37 @@ def playbutton_click():
 def quitbutton_click():
     pygame.quit()
 
+def nightmodebutton_click():
+    global NightMode
+    global StandingBlockColor
+    global GridColor
+    global WindowColor
+    global BlockColor
+    global TextColor
+
+    if NightMode:
+        NightMode = False
+        StandingBlockColor = BLACK
+        GridColor = GRAY
+        WindowColor = WHITE
+        BlockColor = BLACK
+        TextColor = BLACK
+    else :
+        NightMode = True
+        StandingBlockColor = WHITE
+        GridColor = GRAY
+        WindowColor = BLACK
+        BlockColor = WHITE
+        TextColor = WHITE
+
+
+
+
 # ------------------------ BOUTTONS ------------------------
 
-playbutton = Button(150, 100, 340, 80, "Play", action=playbutton_click)
-quitbutton = Button(150, 200, 340, 80, "Quit", action=quitbutton_click)
+playbutton = Button(150, 100, 340, 80, "Play", "Arial", 40, action=playbutton_click)
+quitbutton = Button(150, 200, 340, 80, "Quit", "Arial", 40, action=quitbutton_click)
+nightmodebutton = Button(475,575,20,20, "N", "Arial", 40, action=nightmodebutton_click)
 
 # -------------------- FONCTIONS UTILITAIRES --------------------
 
@@ -176,13 +222,13 @@ def draw_grid():
             if grid[y][x]:  # Si la case est occupée, dessine un bloc blanc
                 pygame.draw.rect(
                     PlaySurface,
-                    WHITE,
+                    StandingBlockColor,
                     (x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
                 )
             # Dessine le contour gris de chaque case (sur Screen)
             pygame.draw.rect(
                 Screen,
-                GRAY,
+                GridColor,
                 (x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
                 1,  # Épaisseur du contour : 1 pixel
             )
@@ -197,7 +243,7 @@ def draw_piece(shapes):
             if cell:  # Si la cellule de la pièce est occupée
                 pygame.draw.rect(
                     PlaySurface,
-                    WHITE,
+                    BlockColor,
                     ((shapes.x + x) * BLOCK_SIZE,      # Position X en pixels
                      (shapes.y + y) * BLOCK_SIZE,           # Position Y en pixels
                      BLOCK_SIZE,
@@ -216,21 +262,22 @@ runningmenu = True
 create_window(640, 480, "Tetris AE | Main Menu")
 
 while running:
+    events = pygame.event.get()
 
-    while runningmenu:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
+    for event in events:
+        if event.type == pygame.QUIT:
+            running = False
 
-        font = pygame.font.SysFont('Arial', 40)
-        playbutton.process()                    # pour fonction voir ligne 97
-        quitbutton.process()
-
+    if runningmenu:
+        Screen.fill((0, 0, 0))
+        playbutton.update(events)
+        playbutton.draw()
+        quitbutton.update(events)
+        quitbutton.draw()
         pygame.display.update()
+        continue
 
-
-
-    PlaySurface.fill(BLACK)                        # Efface l'écran en le remplissant de noir
+    PlaySurface.fill(WindowColor)                        # Efface l'écran en le remplissant de noir
     fall_time += clock.get_rawtime()          # Ajoute le temps écoulé depuis le dernier appel (en ms)
     clock.tick(60)                            # Limite le jeu à 60 FPS
 
@@ -249,7 +296,7 @@ while running:
         fall_time = 0                         # Réinitialise le compteur de chute
 
     # --- Gestion des événements (clavier, fermeture de fenêtre) ---
-    for e in pygame.event.get():
+    for e in events:
         if e.type == pygame.QUIT:             # Clic sur la croix de fermeture
             running = False
 
@@ -273,15 +320,18 @@ while running:
 
     # --- Affichage du score ---
     font = pygame.font.SysFont("Arial", 32)              # Défini la police d'écriture: "Arial" et sa taille: 32
-    text = font.render("Score :", True, WHITE)         # Crée une variable avec le texte: "Score :" et sa couleur: WHITE
-    Score_text = font.render(str(Score), True, WHITE)       # PS: str(Score) -> Transforme  la valeur de Score en texte
+    text = font.render("Score :", True, TextColor)         # Crée une variable avec le texte: "Score :" et sa couleur: WHITE
+    Score_text = font.render(str(Score), True, TextColor)       # PS: str(Score) -> Transforme  la valeur de Score en texte
 
     PlaySurface.blit(text, (300, 0))              # Affiche le texte "Score :" à la position (300, 0)
-    PlaySurface.blit(Score_text, (300, 50))       # Affiche le score à la position (300, 50) (en dessous du texte)
+    PlaySurface.blit(Score_text, (405, 2))       # Affiche le score à la position (300, 50) (en dessous du texte)
 
     # --- Dessin de la grille et de la pièce ---
     draw_grid()
     draw_piece(piece)
+
+    nightmodebutton.update(events)
+    nightmodebutton.draw()
 
     pygame.display.update()                  # Rafraîchit l'affichage pour montrer les changements
 
