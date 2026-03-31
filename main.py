@@ -8,7 +8,6 @@ pygame.init()  # Démarre tous les modules de pygame (affichage, son, clavier, e
 # Dimensions de la fenêtre de jeu en pixels
 WIDTH, HEIGHT = 300, 600
 PlaySurface = pygame.display.set_mode((WIDTH, HEIGHT))          # Crée la fenêtre principale du jeu (Zone de jeux)
-pygame.display.set_caption("Tetris AE | Game Mode")        # Définit le titre de la fenêtre
 Screen = pygame.display.set_mode((500, 600))          # Recrée la fenêtre avec une largeur plus grande (remplace la précédente)
 
 clock = pygame.time.Clock()  # Crée une horloge pour contrôler la vitesse du jeu (FPS)
@@ -61,8 +60,63 @@ class Piece:
         # zip(*self.shape[::-1]) retourne les colonnes de bas en haut comme nouvelles lignes
         self.shape = list(zip(*self.shape[::-1]))
 
+# -------------------- CLASSE BOUTTON --------------------
+
+class Button:
+    def __init__(self, x, y, width, height, text, action=None):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text = text
+        self.action = action
+        self.color = '#ffffff'
+        self.hover_color = '#666666'
+        self.pressed_color = '#333333'
+        self.current_color = self.color
+
+    def process(self):
+        mouse_pos = pygame.mouse.get_pos()
+        # Hover effect
+        if self.rect.collidepoint(mouse_pos):
+            self.current_color = self.hover_color
+            # Check for click
+            if pygame.mouse.get_pressed()[0]:  # Left mouse button
+                self.current_color = self.pressed_color
+                if self.action:
+                    self.action()
+        else:
+            self.current_color = self.color
+
+        # Draw button
+        pygame.draw.rect(Screen, self.current_color, self.rect)
+        text_surf = font.render(self.text, True, (20, 20, 20))
+        text_rect = text_surf.get_rect(center=self.rect.center)
+        Screen.blit(text_surf, text_rect)
+
+# -------------------- FONCTIONS BOUTTON --------------------
+
+def playbutton_click():
+    global runningmenu
+    runningmenu = False
+    global PlaySurface
+    PlaySurface = pygame.display.set_mode((300, 600))    # recrée la fenêtre principale du jeu (Zone de jeux)
+    pygame.display.set_caption("Tetris AE | Game Mode")  # Définit le titre de la fenêtre
+    global Screen
+    Screen = pygame.display.set_mode((500, 600))         # Recrée la fenêtre avec une largeur plus grande (remplace la précédente)
+
+def quitbutton_click():
+    pygame.quit()
+
+# ------------------------ BOUTTONS ------------------------
+
+playbutton = Button(150, 100, 340, 80, "Play", action=playbutton_click)
+quitbutton = Button(150, 200, 340, 80, "Quit", action=quitbutton_click)
 
 # -------------------- FONCTIONS UTILITAIRES --------------------
+
+def create_window(Width, Height, WindowName):
+    global screen
+    screen = pygame.display.set_mode((Width, Height))   # Crée une fenêtre
+    pygame.display.set_caption(WindowName)              # Définit le titre de la fenêtre
+
 
 def valid_position(shape, dx=0, dy=0):
     """
@@ -157,7 +211,25 @@ piece = Piece()   # Crée la première pièce
 fall_time = 0     # Compteur de temps pour gérer la chute automatique
 
 running = True
+runningmenu = True
+
+create_window(640, 480, "Tetris AE | Main Menu")
+
 while running:
+
+    while runningmenu:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+        font = pygame.font.SysFont('Arial', 40)
+        playbutton.process()                    # pour fonction voir ligne 97
+        quitbutton.process()
+
+        pygame.display.update()
+
+
+
     PlaySurface.fill(BLACK)                        # Efface l'écran en le remplissant de noir
     fall_time += clock.get_rawtime()          # Ajoute le temps écoulé depuis le dernier appel (en ms)
     clock.tick(60)                            # Limite le jeu à 60 FPS
