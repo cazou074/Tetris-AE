@@ -19,4 +19,5 @@
 - descente instantanée (touche espace)
 - outline sur les pièces (semble derriere la grille en gros)
 - easter egg
+- implementer le logo
 
