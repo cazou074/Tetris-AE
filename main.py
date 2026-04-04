@@ -207,7 +207,7 @@ def clear_lines():
     while len(grid) < ROWS:
         grid.insert(0, [0 for _ in range(COLS)])
         global Score    # Interagit avec la variable Score qui est global(partout dans le projet)
-        Score =+ 1      # Rajoute 1 au Score
+        Score += 1      # Rajoute 1 au Score
 
 
 
